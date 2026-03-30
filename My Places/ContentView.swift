@@ -17,9 +17,6 @@ struct ContentView: View {
   @State private var selectedPOI: PointOfInterest?
   
   @State private var showingAddPOI = false
-  @State private var newPOIName = ""
-  @State private var selectedType: PlaceType?
-  @State private var showingDuplicateNameAlert = false
   
   enum ViewMode: String, CaseIterable {
     case list = "List"
@@ -93,8 +90,6 @@ struct ContentView: View {
           }
           ToolbarItem {
             Button(action: {
-              newPOIName = ""
-              selectedType = placeTypes.first(where: { $0.name == PlaceType.defaultTypeName })
               showingAddPOI = true
             }) {
               Label("Add POI", systemImage: "plus")
@@ -112,37 +107,9 @@ struct ContentView: View {
       }
     }
     .sheet(isPresented: $showingAddPOI) {
-      NavigationStack {
-        Form {
-          TextField("Name", text: $newPOIName)
-          Picker("Type", selection: $selectedType) {
-            ForEach(placeTypes) { type in
-              HStack {
-                Text("\(type.label) \(type.name)")
-              }.tag(Optional(type))
-            }
-          }
-        }
-        .navigationTitle("New POI")
-        .toolbar {
-          ToolbarItem(placement: .cancellationAction) {
-            Button("Cancel") {
-              showingAddPOI = false
-            }
-          }
-          ToolbarItem(placement: .confirmationAction) {
-            Button("Save") {
-              addPOI()
-            }
-            .disabled(newPOIName.isEmpty || selectedType == nil)
-          }
-        }
+      if let selectedList = selectedList {
+        AddPOIView(list: selectedList)
       }
-    }
-    .alert("Duplicate Name", isPresented: $showingDuplicateNameAlert) {
-      Button("OK", role: .cancel) { }
-    } message: {
-      Text("A point of interest with this name already exists. Please choose a unique name.")
     }
     .onAppear {
       ensureDefaults()
@@ -154,23 +121,6 @@ struct ContentView: View {
   
   private func ensureDefaults() {
     PlaceList.ensureDefaults(modelContext: modelContext)
-  }
-  
-  private func addPOI() {
-    guard let selectedList = selectedList else { return }
-    
-    let name = newPOIName.trimmingCharacters(in: .whitespacesAndNewlines)
-    
-    // Validation: Check for unique name
-    let fetchDescriptor = FetchDescriptor<PointOfInterest>(predicate: #Predicate { $0.name == name })
-    if let count = try? modelContext.fetchCount(fetchDescriptor), count > 0 {
-      showingDuplicateNameAlert = true
-      return
-    }
-    
-    let newPOI = PointOfInterest(name: name, type: selectedType, list: selectedList)
-    modelContext.insert(newPOI)
-    showingAddPOI = false
   }
   
   private func deletePOIs(offsets: IndexSet) {
