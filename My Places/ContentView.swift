@@ -53,23 +53,9 @@ struct ContentView: View {
       }
     } content: {
       if let selectedList = selectedList {
-        let numItems = selectedList.pois.count
-        let itemDescription = numItems == 0 ? "Empty" : (numItems == 1 ? "\(numItems) item" : "\(numItems) items")
         Group {
           if viewMode == .list {
-            List(selection: $selectedPOI) {
-              Section(header: Text("\(itemDescription)")) {
-                ForEach(selectedList.pois.sorted(by: { $0.name < $1.name })) { poi in
-                  NavigationLink(value: poi) {
-                    HStack {
-                      Text(poi.type?.label ?? "📍")
-                      Text(poi.name)
-                    }
-                  }
-                }
-                .onDelete(perform: deletePOIs)
-              }
-            }
+            POIListView(list: selectedList, selectedPOI: $selectedPOI)
           } else {
             POIMapView(list: selectedList, selectedPOI: $selectedPOI)
           }
@@ -121,16 +107,6 @@ struct ContentView: View {
   
   private func ensureDefaults() {
     PlaceList.ensureDefaults(modelContext: modelContext)
-  }
-  
-  private func deletePOIs(offsets: IndexSet) {
-    guard let selectedList = selectedList else { return }
-    withAnimation {
-      let sortedPois = selectedList.pois.sorted(by: { $0.name < $1.name })
-      for index in offsets {
-        modelContext.delete(sortedPois[index])
-      }
-    }
   }
 }
 
