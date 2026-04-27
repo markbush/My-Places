@@ -29,7 +29,14 @@ struct POIListView: View {
           NavigationLink(value: poi) {
             HStack {
               Text(poi.type?.label ?? "📍")
-              Text(poi.name)
+              VStack(alignment: .leading) {
+                Text(poi.name)
+                if let visited = poi.lastVisited {
+                  let format = visited.formatted(date: .complete, time: .omitted)
+                  Text("Visited: \(format)")
+                    .font(.subheadline)
+                }
+              }
             }
           }
         }
