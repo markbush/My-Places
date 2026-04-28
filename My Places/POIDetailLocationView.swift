@@ -51,8 +51,8 @@ struct POIDetailLocationView: View {
   
   private func navigateToPOI() {
     guard let coordinate = poi.coordinate else { return }
-    let placemark = MKPlacemark(coordinate: coordinate)
-    let mapItem = MKMapItem(placemark: placemark)
+    let location = CLLocation(latitude: coordinate.latitude, longitude: coordinate.longitude)
+    let mapItem = MKMapItem(location: location, address: nil)
     mapItem.name = poi.name
     mapItem.openInMaps(launchOptions: [MKLaunchOptionsDirectionsModeKey: MKLaunchOptionsDirectionsModeWalking])
   }
